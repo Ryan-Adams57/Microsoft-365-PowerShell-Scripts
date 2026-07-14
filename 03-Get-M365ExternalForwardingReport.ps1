@@ -92,7 +92,7 @@ try {
     $connectionState = Get-ConnectionInformation -ErrorAction SilentlyContinue
     
     if (-not $connectionState -or $connectionState.State -ne 'Connected') {
-        Connect-ExchangeOnline -ShowBanner:$false -UseRPSSession -ErrorAction Stop
+        Connect-ExchangeOnline -ShowBanner:$false -ErrorAction Stop
         Write-Host "Successfully connected to Exchange Online." -ForegroundColor Green
     }
     else {
