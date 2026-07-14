@@ -90,7 +90,7 @@ Write-Host "Connecting to Exchange Online..." -ForegroundColor Cyan
 
 try {
     # UseRPSSession avoids authentication broker issues
-    Connect-ExchangeOnline -ShowBanner:$false -UseRPSSession -ErrorAction Stop
+    Connect-ExchangeOnline -ShowBanner:$false -ErrorAction Stop
     Write-Host "Successfully connected to Exchange Online.`n" -ForegroundColor Green
 }
 catch {
