@@ -1,8 +1,3 @@
-# ====================================================================================
-# M365 POWERSHELL REPORTING SCRIPT - PRODUCTION READY
-# Enterprise-grade reporting with comprehensive error handling
-# ====================================================================================
-#
 <#
 ====================================================================================
 Script Name: 48-Get-InformationBarriersReport.ps1
