@@ -1,209 +1,182 @@
-# ====================================================================================
-# M365 POWERSHELL REPORTING SCRIPT - PRODUCTION READY VERSION 2.0
-# Enterprise-grade reporting with comprehensive error handling and logging
-# Designed for production environments with full audit trail
-# ====================================================================================
-#
 <#
-====================================================================================
-Script Name: 60-Get-ServicePrincipalPermissionsReport.ps1
-Description: Production-ready M365 reporting script
-Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
-====================================================================================
+.SYNOPSIS
+    Generates a report of application (app role) and delegated (OAuth2) permission grants
+    held by service principals in Microsoft Entra ID (Azure AD).
 
-SCRIPT HIGHLIGHTS:
-• Production-ready M365 reporting solution
-• Comprehensive error handling with try/catch/finally
-• Progress indicators for long-running operations
-• CSV export with timestamped filenames
-• MFA-compatible authentication
-• Script-scoped variables for data isolation
-• Detailed logging and status updates
-• Parameter validation for all inputs
+.DESCRIPTION
+    Connects to Microsoft Graph and enumerates all service principals in the tenant.
+    For each service principal it collects:
+      - Application permissions granted to it via app role assignments
+        (Get-MgServicePrincipalAppRoleAssignment).
+      - Delegated permissions granted to it via OAuth2 permission grants
+        (Get-MgOauth2PermissionGrant).
+    Each granted permission is emitted as one row and the combined result set is
+    exported to a timestamped CSV file. Service principals that have no permission
+    grants produce no rows.
 
-REQUIREMENTS:
-• PowerShell 5.1 or higher
-• Appropriate M365 administrator permissions
-• Required modules (validated at runtime)
+    Errors encountered while processing an individual service principal are reported
+    and skipped so that one problematic object does not abort the entire report.
 
-====================================================================================
+.PARAMETER ExportPath
+    Path to the CSV file that will be created. Defaults to a timestamped file name
+    in the current directory (Report_60_yyyyMMdd_HHmmss.csv).
+
+.EXAMPLE
+    .\60-Get-ServicePrincipalPermissionsReport.ps1
+    Generates the report using the default timestamped output path.
+
+.EXAMPLE
+    .\60-Get-ServicePrincipalPermissionsReport.ps1 -ExportPath 'C:\Reports\SPPerms.csv'
+    Generates the report and writes it to the specified path.
+
+.NOTES
+    Author:        Ryan Adams
+    Version:       3.0
+    Last Updated:  2026-07-13
+    Requires:      Microsoft.Graph.Applications, Microsoft.Graph.Identity.SignIns, Microsoft.Graph.Authentication
+    Permissions:   Application.Read.All, Directory.Read.All (delegated, admin-consented)
+
+.OUTPUTS
+    None. This script writes a CSV file to disk and displays progress to the host.
 #>
 
 #Requires -Version 5.1
 
-# USAGE NOTES:
-# This script provides production-ready reporting capabilities
-# - Run with appropriate M365 administrator permissions
-# - Supports MFA and modern authentication
-# - Generates timestamped CSV reports for audit compliance
-# - Includes comprehensive error handling and logging
-# - Use -Verbose for detailed execution information
-#
-
 [CmdletBinding()]
 param([string]$ExportPath = ".\Report_60_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv")
 
-Write-Host "`n==================================================================================`n" -ForegroundColor Cyan
+Write-Host "`n================================================================================`n" -ForegroundColor Cyan
 Write-Host "Service Principal Permissions Report" -ForegroundColor Green
-Write-Host "==================================================================================`n" -ForegroundColor Cyan
+Write-Host "================================================================================`n" -ForegroundColor Cyan
 
-$requiredModule = "Microsoft.Graph.Reports"
-if (-not (Get-Module -ListAvailable -Name $requiredModule)) {
-    $install = Read-Host "Install $requiredModule? (Y/N)"
-    if ($install -match '^[Yy]$') {
-        Install-Module -Name $requiredModule -Scope CurrentUser -Force -AllowClobber
-        Write-Host "Installed.`n" -ForegroundColor Green
-    } else { exit }
+# Ensure the required Microsoft Graph modules are available
+$requiredModules = @('Microsoft.Graph.Applications','Microsoft.Graph.Identity.SignIns','Microsoft.Graph.Authentication')
+foreach ($requiredModule in $requiredModules) {
+    if (-not (Get-Module -ListAvailable -Name $requiredModule)) {
+        $install = Read-Host "Required module '$requiredModule' is not installed. Install it now? (Y/N)"
+        if ($install -match '^[Yy]$') {
+            Install-Module -Name $requiredModule -Scope CurrentUser -Force -AllowClobber
+            Write-Host "Installed $requiredModule.`n" -ForegroundColor Green
+        } else {
+            Write-Host "Cannot continue without $requiredModule. Exiting." -ForegroundColor Red
+            exit
+        }
+    }
 }
 
-Write-Host "Connecting..." -ForegroundColor Cyan
+Write-Host "Connecting to Microsoft Graph..." -ForegroundColor Cyan
 try {
-    Connect-MgGraph -Scopes "Directory.Read.All","Reports.Read.All" -NoWelcome -ErrorAction Stop
+    Connect-MgGraph -Scopes "Application.Read.All","Directory.Read.All" -NoWelcome -ErrorAction Stop
     Write-Host "Connected.`n" -ForegroundColor Green
 } catch {
-    Write-Host "Failed: $_" -ForegroundColor Red
+    Write-Host "Failed to connect to Microsoft Graph: $_" -ForegroundColor Red
     exit
 }
 
-Write-Host "Retrieving data..." -ForegroundColor Cyan
+Write-Host "Retrieving service principals..." -ForegroundColor Cyan
 $script:Results = @()
 
 try {
-    $data = [PSCustomObject]@{
-        ReportName = "Service Principal Permissions Report"
-        ScriptNumber = 60
-        Generated = Get-Date
-        Status = "Production Ready"
+    $servicePrincipals = Get-MgServicePrincipal -All -ErrorAction Stop
+    Write-Host "Found $($servicePrincipals.Count) service principal(s). Evaluating permission grants...`n" -ForegroundColor Green
+
+    # Cache resource service principals (the API/resource being granted access to)
+    # so we can resolve app role and scope names without repeated lookups.
+    $resourceCache = @{}
+    function Get-ResourceSp {
+        param([string]$ResourceId)
+        if ([string]::IsNullOrEmpty($ResourceId)) { return $null }
+        if ($resourceCache.ContainsKey($ResourceId)) { return $resourceCache[$ResourceId] }
+        try {
+            $sp = Get-MgServicePrincipal -ServicePrincipalId $ResourceId -ErrorAction Stop
+        } catch {
+            $sp = $null
+        }
+        $resourceCache[$ResourceId] = $sp
+        return $sp
     }
-    $script:Results += $data
-    Write-Host "Data retrieved.`n" -ForegroundColor Green
+
+    $total = $servicePrincipals.Count
+    $index = 0
+    foreach ($sp in $servicePrincipals) {
+        $index++
+        Write-Progress -Activity "Evaluating service principal permissions" -Status "$($sp.DisplayName) ($index of $total)" -PercentComplete (($index / [math]::Max($total,1)) * 100)
+
+        try {
+            # --- Application permissions (app role assignments) ---
+            $appRoleAssignments = Get-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $sp.Id -All -ErrorAction Stop
+            foreach ($assignment in $appRoleAssignments) {
+                $resourceSp = Get-ResourceSp -ResourceId $assignment.ResourceId
+                $permissionValue = $null
+                if ($resourceSp) {
+                    $role = $resourceSp.AppRoles | Where-Object { $_.Id -eq $assignment.AppRoleId }
+                    if ($role) { $permissionValue = $role.Value }
+                }
+
+                $script:Results += [PSCustomObject]@{
+                    ServicePrincipalDisplayName = $sp.DisplayName
+                    ServicePrincipalId          = $sp.Id
+                    AppId                       = $sp.AppId
+                    ServicePrincipalType        = $sp.ServicePrincipalType
+                    PermissionType              = 'Application'
+                    ResourceDisplayName         = $assignment.ResourceDisplayName
+                    ResourceId                  = $assignment.ResourceId
+                    Permission                  = $permissionValue
+                    ConsentType                 = 'AdminConsent'
+                    PrincipalId                 = $null
+                    GrantId                     = $assignment.Id
+                }
+            }
+
+            # --- Delegated permissions (OAuth2 permission grants) ---
+            $oauthGrants = Get-MgOauth2PermissionGrant -Filter "clientId eq '$($sp.Id)'" -All -ErrorAction Stop
+            foreach ($grant in $oauthGrants) {
+                $resourceSp = Get-ResourceSp -ResourceId $grant.ResourceId
+                $resourceName = if ($resourceSp) { $resourceSp.DisplayName } else { $null }
+                $scopes = @()
+                if (-not [string]::IsNullOrWhiteSpace($grant.Scope)) {
+                    $scopes = $grant.Scope.Trim() -split '\s+'
+                }
+                foreach ($scope in $scopes) {
+                    $script:Results += [PSCustomObject]@{
+                        ServicePrincipalDisplayName = $sp.DisplayName
+                        ServicePrincipalId          = $sp.Id
+                        AppId                       = $sp.AppId
+                        ServicePrincipalType        = $sp.ServicePrincipalType
+                        PermissionType              = 'Delegated'
+                        ResourceDisplayName         = $resourceName
+                        ResourceId                  = $grant.ResourceId
+                        Permission                  = $scope
+                        ConsentType                 = $grant.ConsentType
+                        PrincipalId                 = $grant.PrincipalId
+                        GrantId                     = $grant.Id
+                    }
+                }
+            }
+        } catch {
+            Write-Warning "Failed to process service principal '$($sp.DisplayName)' ($($sp.Id)): $_"
+            continue
+        }
+    }
+    Write-Progress -Activity "Evaluating service principal permissions" -Completed
+    Write-Host "Permission grant evaluation complete.`n" -ForegroundColor Green
 } catch {
-    Write-Host "Error: $_" -ForegroundColor Red
+    Write-Host "Error retrieving service principal data: $_" -ForegroundColor Red
     Disconnect-MgGraph | Out-Null
     exit
 }
 
 if ($script:Results.Count -gt 0) {
-    Write-Host "`n==================================================================================`n" -ForegroundColor Cyan
-    Write-Host "Summary: $($script:Results.Count) record(s)" -ForegroundColor Green
+    Write-Host "`n================================================================================`n" -ForegroundColor Cyan
+    Write-Host "Summary: $($script:Results.Count) permission grant record(s)" -ForegroundColor Green
     $script:Results | Export-Csv -Path $ExportPath -NoTypeInformation -Encoding UTF8
     Write-Host "Report: $ExportPath" -ForegroundColor White
-    Write-Host "==================================================================================`n" -ForegroundColor Cyan
+    Write-Host "================================================================================`n" -ForegroundColor Cyan
     $script:Results | Format-Table -AutoSize
     $open = Read-Host "Open CSV? (Y/N)"
     if ($open -match '^[Yy]$') { Invoke-Item $ExportPath }
+} else {
+    Write-Host "No service principal permission grants were found." -ForegroundColor Yellow
 }
 
 Disconnect-MgGraph | Out-Null
-
-# ===== CLEANUP AND SUMMARY SECTION =====
-Write-Log "Performing cleanup operations..." -Level Info
-
-# Calculate execution metrics
-$script:EndTime = Get-Date
-$script:Duration = $script:EndTime - $script:StartTime
-$script:DurationMinutes = [math]::Round($script:Duration.TotalMinutes, 2)
-$script:DurationSeconds = [math]::Round($script:Duration.TotalSeconds, 2)
-
-# Disconnect from M365 services
-try {
-    Write-Log "Disconnecting from M365 services..." -Level Info
-    
-    # Microsoft Graph
-    if (Get-Command Disconnect-MgGraph -ErrorAction SilentlyContinue) {
-        try {
-            Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
-            Write-Log "Disconnected from Microsoft Graph" -Level Verbose
-        } catch {
-            Write-Log "Graph disconnect: $($_.Exception.Message)" -Level Verbose
-        }
-    }
-    
-    # Exchange Online
-    if (Get-Command Disconnect-ExchangeOnline -ErrorAction SilentlyContinue) {
-        try {
-            Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-            Write-Log "Disconnected from Exchange Online" -Level Verbose
-        } catch {
-            Write-Log "Exchange disconnect: $($_.Exception.Message)" -Level Verbose
-        }
-    }
-    
-    # Microsoft Teams
-    if (Get-Command Disconnect-MicrosoftTeams -ErrorAction SilentlyContinue) {
-        try {
-            Disconnect-MicrosoftTeams -ErrorAction SilentlyContinue | Out-Null
-            Write-Log "Disconnected from Microsoft Teams" -Level Verbose
-        } catch {
-            Write-Log "Teams disconnect: $($_.Exception.Message)" -Level Verbose
-        }
-    }
-    
-    # SharePoint Online
-    if (Get-Command Disconnect-SPOService -ErrorAction SilentlyContinue) {
-        try {
-            Disconnect-SPOService -ErrorAction SilentlyContinue | Out-Null
-            Write-Log "Disconnected from SharePoint Online" -Level Verbose
-        } catch {
-            Write-Log "SharePoint disconnect: $($_.Exception.Message)" -Level Verbose
-        }
-    }
-    
-    # Security & Compliance
-    if (Get-Command Disconnect-IPPSSession -ErrorAction SilentlyContinue) {
-        try {
-            Disconnect-IPPSSession -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-            Write-Log "Disconnected from Security & Compliance" -Level Verbose
-        } catch {
-            Write-Log "Compliance disconnect: $($_.Exception.Message)" -Level Verbose
-        }
-    }
-    
-    Write-Log "Service disconnection complete" -Level Success
-}
-catch {
-    Write-Log "Disconnect completed with warnings: $($_.Exception.Message)" -Level Warning
-}
-
-# Display comprehensive execution summary
-Write-Host "\n====================================================================================\n" -ForegroundColor Cyan
-Write-Host "EXECUTION SUMMARY" -ForegroundColor Green
-Write-Host "====================================================================================\n" -ForegroundColor Cyan
-Write-Host "Script Information:" -ForegroundColor Yellow
-Write-Host "  Script Name      : $($MyInvocation.MyCommand.Name)" -ForegroundColor White
-Write-Host "  Version          : 2.0 - Production Ready" -ForegroundColor White
-Write-Host "  Execution Date   : $(Get-Date -Format "yyyy-MM-dd")" -ForegroundColor White
-Write-Host "" -ForegroundColor White
-Write-Host "Execution Metrics:" -ForegroundColor Yellow
-Write-Host "  Start Time       : $($script:StartTime.ToString("yyyy-MM-dd HH:mm:ss"))" -ForegroundColor White
-Write-Host "  End Time         : $($script:EndTime.ToString("yyyy-MM-dd HH:mm:ss"))" -ForegroundColor White
-Write-Host "  Duration         : $script:DurationMinutes minutes ($script:DurationSeconds seconds)" -ForegroundColor White
-Write-Host "  Items Processed  : $script:ProcessedCount" -ForegroundColor White
-Write-Host "" -ForegroundColor White
-Write-Host "Results:" -ForegroundColor Yellow
-Write-Host "  Total Results    : $($script:Results.Count)" -ForegroundColor White
-if ($ExportPath -and (Test-Path $ExportPath -ErrorAction SilentlyContinue)) {
-    $fileSize = (Get-Item $ExportPath).Length
-    $fileSizeKB = [math]::Round($fileSize / 1KB, 2)
-    Write-Host "  Export Location  : $ExportPath" -ForegroundColor Cyan
-    Write-Host "  Export Size      : $fileSizeKB KB" -ForegroundColor White
-}
-Write-Host "" -ForegroundColor White
-Write-Host "Status:" -ForegroundColor Yellow
-Write-Host "  Errors           : $script:ErrorCount" -ForegroundColor $(if ($script:ErrorCount -eq 0) { "Green" } else { "Red" })
-Write-Host "  Warnings         : $script:WarningCount" -ForegroundColor $(if ($script:WarningCount -eq 0) { "Green" } else { "Yellow" })
-Write-Host "\n====================================================================================\n" -ForegroundColor Cyan
-
-# Final status message
-if ($script:ErrorCount -eq 0) {
-    Write-Log "Script completed successfully! All operations finished without errors." -Level Success
-    Write-Host "✓ STATUS: SUCCESS\n" -ForegroundColor Green
-    exit 0
-}
-else {
-    Write-Log "Script completed with $script:ErrorCount error(s). Please review the log above." -Level Warning
-    Write-Host "⚠ STATUS: COMPLETED WITH ERRORS\n" -ForegroundColor Yellow
-    exit 1
-}
-Write-Host "Script 60 completed.`n" -ForegroundColor Green
