@@ -1,8 +1,3 @@
-# ====================================================================================
-# M365 POWERSHELL REPORTING SCRIPT - PRODUCTION READY
-# Enterprise-grade reporting with comprehensive error handling
-# ====================================================================================
-#
 <#
 ====================================================================================
 Script Name: 49-Get-AzureADPIMReport.ps1
