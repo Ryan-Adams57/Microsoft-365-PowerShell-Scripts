@@ -1,8 +1,3 @@
-# ====================================================================================
-# M365 POWERSHELL REPORTING SCRIPT - PRODUCTION READY
-# Enterprise-grade reporting with comprehensive error handling
-# ====================================================================================
-#
 <#
 ====================================================================================
 Script Name: 43-Get-TeamsVoiceCallingReport.ps1
