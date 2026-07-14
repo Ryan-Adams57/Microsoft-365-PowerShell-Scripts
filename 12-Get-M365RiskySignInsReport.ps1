@@ -1,17 +1,60 @@
 <#
-====================================================================================
-Script Name: 12-Get-M365RiskySignInsReport.ps1
-Description: Production-ready M365 reporting script
-Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
-====================================================================================
+.SYNOPSIS
+    Reports on risky sign-ins from Microsoft Entra ID (Azure AD) Identity Protection.
 
-REQUIREMENTS:
-• PowerShell 5.1 or higher
-• Appropriate M365 administrator permissions
-• Required modules (will be validated at runtime)
+.DESCRIPTION
+    Connects to Microsoft Graph and retrieves risky sign-in events recorded by
+    Entra ID Identity Protection for a given date range. Results can be filtered by
+    risk level or by a specific user, are displayed in the console, and are exported
+    to a timestamped CSV file. The report includes risk level, risk state, risk
+    detail, risk event types, sign-in time, IP address, and location.
 
-====================================================================================
+    Uses the Get-MgRiskySignIn cmdlet from the Microsoft.Graph.Identity.SignIns
+    module (validated at runtime). Access to Identity Protection risk data requires
+    the appropriate Microsoft Entra ID licensing (typically Entra ID Premium P2).
+
+.PARAMETER StartDate
+    Start of the date range to query. Defaults to 7 days ago.
+
+.PARAMETER EndDate
+    End of the date range to query. Defaults to the current date and time.
+
+.PARAMETER RiskLevel
+    Filters results by risk level. Valid values: low, medium, high, All. Defaults to All.
+
+.PARAMETER UserPrincipalName
+    Limits the report to a single user's sign-ins (e.g. user@contoso.com).
+
+.PARAMETER ExportPath
+    Path for the exported CSV report. Defaults to a timestamped file in the
+    current directory (M365_Risky_SignIns_Report_yyyyMMdd_HHmmss.csv).
+
+.EXAMPLE
+    .\12-Get-M365RiskySignInsReport.ps1
+    Generates a report of all risky sign-ins from the last 7 days.
+
+.EXAMPLE
+    .\12-Get-M365RiskySignInsReport.ps1 -RiskLevel high -StartDate (Get-Date).AddDays(-30)
+    Reports only high-risk sign-ins from the last 30 days.
+
+.EXAMPLE
+    .\12-Get-M365RiskySignInsReport.ps1 -UserPrincipalName user@contoso.com
+    Reports risky sign-ins for a single user.
+
+.OUTPUTS
+    None. The script exports a CSV report to the path specified by -ExportPath
+    and writes status information to the console.
+
+.NOTES
+    Script Name : 12-Get-M365RiskySignInsReport.ps1
+    Version     : 2.0
+    Requires    : PowerShell 5.1+, Microsoft.Graph.Identity.SignIns module
+    Permissions : User.Read.All, AuditLog.Read.All, Directory.Read.All
+    Licensing   : Access to Identity Protection data requires appropriate
+                  Microsoft Entra ID licensing (typically Entra ID Premium P2).
+
+.LINK
+    https://learn.microsoft.com/powershell/module/microsoft.graph.identity.signins/get-mgriskysignin
 #>
 
 #Requires -Version 5.1
