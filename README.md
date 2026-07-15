@@ -89,7 +89,7 @@ The "Connects via" values reflect the connection method observed in each script'
 
 | Script | Description | Connects via | Status |
 | --- | --- | --- | --- |
-| 00-Install-M365Modules | Installs the PowerShell modules required by the other scripts | — (module installer) | Utility |
+| 00-Install-M365Modules | Installs the PowerShell modules required by the other scripts | - (module installer) | Utility |
 | 01-Get-M365UserLicenseReport | User license assignment report | Microsoft Graph | Functional |
 | 02-Get-M365InactiveUsersReport | Inactive users report | Microsoft Graph | Functional |
 | 03-Get-M365ExternalForwardingReport | External mail forwarding report | Exchange Online | Functional |
