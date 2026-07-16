@@ -9,7 +9,7 @@
 Script Name: 36-Get-M365eDiscoveryCasesReport.ps1
 Description: eDiscovery cases, holds, and search configuration report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
