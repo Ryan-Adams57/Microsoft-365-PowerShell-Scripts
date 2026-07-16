@@ -3,7 +3,7 @@
 Script Name: 30-Get-PowerAppsUsageReport.ps1
 Description: Power Apps usage, adoption, and analytics report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
