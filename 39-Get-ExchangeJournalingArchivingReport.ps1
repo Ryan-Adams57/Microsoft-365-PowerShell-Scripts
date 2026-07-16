@@ -3,7 +3,7 @@
 Script Name: 39-Get-ExchangeJournalingArchivingReport.ps1
 Description: Exchange Online journaling rules and in-place archiving configuration
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
