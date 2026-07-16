@@ -1,5 +1,3 @@
-> **BETA:** These PowerShell scripts are currently in BETA. Please validate each script individually in a non-production tenant before deploying to production.
-
 # Microsoft 365 PowerShell Scripts
 
 A collection of PowerShell scripts and tools, in varying stages of completion, for managing, auditing, and reporting on Microsoft 365 tenants. The collection spans Entra ID (Azure AD), Exchange Online, SharePoint/OneDrive, Teams, Intune, Microsoft Defender, Purview/compliance, and the Power Platform.
@@ -26,7 +24,7 @@ This collection is in active development, and the scripts are at different stage
 
 This repository provides 76 reporting and auditing scripts (numbered `00`-`75`) for Microsoft 365 administrators, in varying stages of completion. Completed scripts typically read tenant configuration or activity data and export a CSV report, making them suitable for scheduled reporting, security reviews, and compliance audits. Other scripts are partially implemented or are placeholders pending implementation.
 
-The scripts are intended for M365 administrators, security/compliance teams, and consultants who want repeatable, script-based reporting. Because the collection is in BETA and not every script is complete, review each script's status and source before use.
+The scripts are intended for M365 administrators, security/compliance teams, and consultants who want repeatable, script-based reporting. Because not every script is complete, review each script's status and source before use.
 
 ## Prerequisites
 
@@ -183,7 +181,7 @@ Scripts are stored in the repository root and numbered `00`-`75` so they sort in
 - **Resolved:** `12-Get-M365RiskySignInsReport.ps1` now includes full comment-based help.
 - **In progress:** Several scripts are placeholders whose reporting logic is scaffolded but not yet connected to live data - they currently produce sample output. A few others are partially implemented. See the **Status** column in the Script Index for the current state of each script. Implementing these is the focus of the next phase of work.
 - Comment-based help is still being added across the functional scripts (currently only script 12 has it).
-- All scripts remain in BETA - validate each one in a non-production tenant before relying on it.
+- Validate each script in a non-production tenant before relying on it.
 
 ## Contributing
 
