@@ -3,7 +3,7 @@
 Script Name: 34-Get-AzureADConditionalAccessSignInLogs.ps1
 Description: Azure AD Conditional Access sign-in logs and policy evaluations
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
