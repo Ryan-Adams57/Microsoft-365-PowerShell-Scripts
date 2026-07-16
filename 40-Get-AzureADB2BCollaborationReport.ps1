@@ -3,7 +3,7 @@
 Script Name: 40-Get-AzureADB2BCollaborationReport.ps1
 Description: Azure AD B2B external collaboration settings and guest governance
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
