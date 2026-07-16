@@ -9,7 +9,7 @@
 Script Name: 58-Get-NetworkConnectivityReport.ps1
 Description: M365 network connectivity assessment and performance metrics
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 SCRIPT HIGHLIGHTS:
