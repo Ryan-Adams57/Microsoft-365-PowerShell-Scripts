@@ -3,7 +3,7 @@
 Script Name: 41-Get-AzureADIdentityProtectionReport.ps1
 Description: Azure AD Identity Protection policies and risk detections report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
