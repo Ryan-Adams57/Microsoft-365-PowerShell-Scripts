@@ -3,7 +3,7 @@
 Script Name: 13-Get-M365GuestUsersAuditReport.ps1
 Description: Comprehensive guest user access and activity audit
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 SCRIPT HIGHLIGHTS:
