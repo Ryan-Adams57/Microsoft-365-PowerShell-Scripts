@@ -3,7 +3,7 @@
 Script Name: 42-Get-TeamsChannelAnalyticsReport.ps1
 Description: Microsoft Teams channel usage and engagement analytics
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
