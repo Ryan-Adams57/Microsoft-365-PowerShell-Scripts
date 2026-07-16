@@ -9,7 +9,7 @@
 Script Name: 38-Get-ExchangeAdvancedMessageTrace.ps1
 Description: Exchange Online advanced message trace and delivery report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
