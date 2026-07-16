@@ -3,7 +3,7 @@
 Script Name: 25-Audit-M365AdminActivityReport.ps1
 Description: Administrator Activity and Privileged Actions Audit
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
