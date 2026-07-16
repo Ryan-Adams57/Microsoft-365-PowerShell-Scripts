@@ -3,7 +3,7 @@
 Script Name: 52-Get-AzureADAppRegistrationsReport.ps1
 Description: Azure AD application registrations and service principals report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
