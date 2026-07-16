@@ -3,7 +3,7 @@
 Script Name: 00-Install-M365Modules.ps1
 Description: Master module installer for all M365 PowerShell scripts
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 SCRIPT HIGHLIGHTS:
