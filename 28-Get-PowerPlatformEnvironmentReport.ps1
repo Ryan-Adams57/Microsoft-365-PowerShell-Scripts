@@ -3,7 +3,7 @@
 Script Name: 28-Get-PowerPlatformEnvironmentReport.ps1
 Description: Power Platform environments and resource inventory report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
