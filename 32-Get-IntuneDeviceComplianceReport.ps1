@@ -3,7 +3,7 @@
 Script Name: 32-Get-IntuneDeviceComplianceReport.ps1
 Description: Intune device compliance status and policy adherence report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
