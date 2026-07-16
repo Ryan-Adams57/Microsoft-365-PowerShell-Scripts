@@ -3,7 +3,7 @@
 Script Name: 50-Get-MicrosoftSecureScoreReport.ps1
 Description: Microsoft 365 Advanced Reporting Script 50
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
