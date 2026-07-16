@@ -3,7 +3,7 @@
 Script Name: 9-Get-M365RoomMailboxUsageReport.ps1
 Description: Comprehensive room and resource mailbox usage analysis
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 SCRIPT HIGHLIGHTS:
