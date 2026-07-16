@@ -9,7 +9,7 @@
 Script Name: 35-Get-M365RetentionPoliciesReport.ps1
 Description: Retention policies and retention labels configuration report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
