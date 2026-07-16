@@ -9,7 +9,7 @@
 Script Name: 71-Get-CloudAppSecurityReport.ps1
 Description: Production-ready M365 reporting script
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 SCRIPT HIGHLIGHTS:
