@@ -3,7 +3,7 @@
 Script Name: 1-Get-M365UserLicenseReport.ps1
 Description: Comprehensive Microsoft 365 user license assignment and usage report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 SCRIPT HIGHLIGHTS:
