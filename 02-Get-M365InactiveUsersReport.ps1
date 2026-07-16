@@ -3,7 +3,7 @@
 Script Name: 2-Get-M365InactiveUsersReport.ps1
 Description: Identifies inactive Microsoft 365 users based on last sign-in activity
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 SCRIPT HIGHLIGHTS:
