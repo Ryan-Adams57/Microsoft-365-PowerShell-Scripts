@@ -3,7 +3,7 @@
 Script Name: 54-Get-HybridIdentityADConnectReport.ps1
 Description: Azure AD Connect sync status and hybrid identity configuration report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
