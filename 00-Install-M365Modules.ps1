@@ -33,13 +33,13 @@ param(
     [Parameter(Mandatory=$false)]
     [ValidateSet("All","Core","Security","Compliance","Teams","Exchange","SharePoint","PowerPlatform","Intune","Analytics")]
     [string]$Category = "All",
-    
+
     [Parameter(Mandatory=$false)]
     [switch]$UpdateExisting,
-    
+
     [Parameter(Mandatory=$false)]
     [switch]$SkipPrompts,
-    
+
     [Parameter(Mandatory=$false)]
     [switch]$Force
 )
@@ -68,43 +68,43 @@ $moduleCategories = @{
         "Microsoft.Graph.Reports",
         "Microsoft.Graph.Identity.DirectoryManagement"
     )
-    
+
     Security = @(
         "Microsoft.Graph.Identity.SignIns",
         "Microsoft.Graph.Security",
         "Microsoft.Graph.Identity.Governance",
         "Microsoft.Graph.DeviceManagement"
     )
-    
+
     Compliance = @(
         "Microsoft.Graph.Compliance",
         "ExchangeOnlineManagement"
     )
-    
+
     Teams = @(
         "MicrosoftTeams"
     )
-    
+
     Exchange = @(
         "ExchangeOnlineManagement"
     )
-    
+
     SharePoint = @(
         "Microsoft.Online.SharePoint.PowerShell",
         "PnP.PowerShell"
     )
-    
+
     PowerPlatform = @(
         "Microsoft.PowerApps.Administration.PowerShell",
         "Microsoft.PowerApps.PowerShell",
         "MicrosoftPowerBIMgmt"
     )
-    
+
     Intune = @(
         "Microsoft.Graph.DeviceManagement",
         "Microsoft.Graph.DeviceManagement.Enrolment"
     )
-    
+
     Analytics = @(
         "Microsoft.Graph.Reports"
     )
@@ -116,29 +116,29 @@ function Install-M365Module {
     param(
         [Parameter(Mandatory=$true)]
         [string]$ModuleName,
-        
+
         [Parameter(Mandatory=$false)]
         [bool]$UpdateIfExists = $false
     )
-    
+
     try {
-        $existingModule = Get-Module -ListAvailable -Name $ModuleName -ErrorAction SilentlyContinue | 
-            Sort-Object Version -Descending | 
+        $existingModule = Get-Module -ListAvailable -Name $ModuleName -ErrorAction SilentlyContinue |
+            Sort-Object Version -Descending |
             Select-Object -First 1
-        
+
         if ($existingModule) {
             Write-Host "  Found existing version: $($existingModule.Version)" -ForegroundColor Yellow
-            
+
             if ($UpdateIfExists) {
                 Write-Host "  Updating module..." -ForegroundColor Cyan
                 try {
                     Update-Module -Name $ModuleName -Force -ErrorAction Stop
-                    $newVersion = (Get-Module -ListAvailable -Name $ModuleName -ErrorAction Stop | 
-                        Sort-Object Version -Descending | 
+                    $newVersion = (Get-Module -ListAvailable -Name $ModuleName -ErrorAction Stop |
+                        Sort-Object Version -Descending |
                         Select-Object -First 1).Version
                     Write-Host "  ✓ Updated successfully to version $newVersion" -ForegroundColor Green
                     $script:UpdatedCount++
-                    
+
                     return [PSCustomObject]@{
                         Module = $ModuleName
                         Status = "Updated"
@@ -149,7 +149,7 @@ function Install-M365Module {
                 catch {
                     Write-Host "  ⚠ Update failed, keeping existing version" -ForegroundColor Yellow
                     $script:SkippedCount++
-                    
+
                     return [PSCustomObject]@{
                         Module = $ModuleName
                         Status = "Skipped"
@@ -161,7 +161,7 @@ function Install-M365Module {
             else {
                 Write-Host "  ✓ Already installed (use -UpdateExisting to update)" -ForegroundColor Green
                 $script:SkippedCount++
-                
+
                 return [PSCustomObject]@{
                     Module = $ModuleName
                     Status = "Skipped"
@@ -173,13 +173,13 @@ function Install-M365Module {
         else {
             Write-Host "  Installing module..." -ForegroundColor Cyan
             Install-Module -Name $ModuleName -Scope CurrentUser -Repository PSGallery -Force -AllowClobber -ErrorAction Stop
-            
-            $installedVersion = (Get-Module -ListAvailable -Name $ModuleName -ErrorAction Stop | 
-                Sort-Object Version -Descending | 
+
+            $installedVersion = (Get-Module -ListAvailable -Name $ModuleName -ErrorAction Stop |
+                Sort-Object Version -Descending |
                 Select-Object -First 1).Version
             Write-Host "  ✓ Installed successfully (v$installedVersion)" -ForegroundColor Green
             $script:SuccessCount++
-            
+
             return [PSCustomObject]@{
                 Module = $ModuleName
                 Status = "Installed"
@@ -191,7 +191,7 @@ function Install-M365Module {
     catch {
         Write-Host "  ✗ Installation failed: $($_.Exception.Message)" -ForegroundColor Red
         $script:FailureCount++
-        
+
         return [PSCustomObject]@{
             Module = $ModuleName
             Status = "Failed"
@@ -227,7 +227,7 @@ if (-not $SkipPrompts -and -not $Force) {
     Write-Host "This will install the following modules:" -ForegroundColor Yellow
     $modulesToInstall | ForEach-Object { Write-Host "  - $_" -ForegroundColor White }
     Write-Host ""
-    
+
     $confirm = Read-Host "Do you want to continue? (Y/N)"
     if ($confirm -ne 'Y' -and $confirm -ne 'y') {
         Write-Host "Installation cancelled.`n" -ForegroundColor Yellow
@@ -239,21 +239,21 @@ Write-Host "`nStarting module installation...`n" -ForegroundColor Cyan
 
 try {
     $progressCounter = 0
-    
+
     foreach ($moduleName in $modulesToInstall) {
         $progressCounter++
         Write-Progress -Activity "Installing M365 Modules" `
             -Status "Module $progressCounter of $($modulesToInstall.Count): $moduleName" `
             -PercentComplete (($progressCounter / $modulesToInstall.Count) * 100)
-        
+
         Write-Host "Processing: $moduleName" -ForegroundColor Cyan
-        
+
         $result = Install-M365Module -ModuleName $moduleName -UpdateIfExists $UpdateExisting.IsPresent
         $script:InstallResults += $result
-        
+
         Write-Host ""
     }
-    
+
     Write-Progress -Activity "Installing M365 Modules" -Completed
 }
 catch {
@@ -270,13 +270,13 @@ finally {
     Write-Host "  Already Installed (Skipped): $script:SkippedCount" -ForegroundColor Yellow
     Write-Host "  Failed: $script:FailureCount" -ForegroundColor Red
     Write-Host "`n====================================================================================`n" -ForegroundColor Cyan
-    
+
     # Display detailed results
     if ($script:InstallResults.Count -gt 0) {
         Write-Host "Detailed Results:" -ForegroundColor Yellow
         $script:InstallResults | Format-Table Module, Status, Version, Result -AutoSize
     }
-    
+
     # Display failures if any
     if ($script:FailureCount -gt 0) {
         Write-Host "`nFailed Installations:" -ForegroundColor Red
@@ -285,7 +285,7 @@ finally {
             Write-Host "    Error: $($_.Result)" -ForegroundColor Yellow
         }
     }
-    
+
     # Provide next steps
     Write-Host "`n====================================================================================`n" -ForegroundColor Cyan
     Write-Host "Next Steps:" -ForegroundColor Green
@@ -293,7 +293,7 @@ finally {
     Write-Host "  2. Run any M365 scripts without module installation prompts" -ForegroundColor White
     Write-Host "  3. To update modules later, run with -UpdateExisting switch" -ForegroundColor White
     Write-Host "`n  Example: .\00-Install-M365Modules.ps1 -UpdateExisting" -ForegroundColor Cyan
-    
+
     # Module categories reference
     Write-Host "`n====================================================================================`n" -ForegroundColor Cyan
     Write-Host "Installation by Category:" -ForegroundColor Green
@@ -308,7 +308,7 @@ finally {
     Write-Host "  Intune       - Intune device management" -ForegroundColor White
     Write-Host "  Analytics    - Usage analytics and reporting" -ForegroundColor White
     Write-Host "`n  Example: .\00-Install-M365Modules.ps1 -Category Security" -ForegroundColor Cyan
-    
+
     # Troubleshooting tips
     Write-Host "`n====================================================================================`n" -ForegroundColor Cyan
     Write-Host "Troubleshooting:" -ForegroundColor Yellow
@@ -317,9 +317,9 @@ finally {
     Write-Host "  • Check PowerShell execution policy: Get-ExecutionPolicy" -ForegroundColor White
     Write-Host "  • Set execution policy if needed: Set-ExecutionPolicy RemoteSigned -Scope CurrentUser" -ForegroundColor White
     Write-Host "  • For corporate environments, check proxy settings with IT" -ForegroundColor White
-    
+
     Write-Host "`n====================================================================================`n" -ForegroundColor Cyan
-    
+
     if ($script:FailureCount -eq 0) {
         Write-Host "✓ All modules installed successfully!" -ForegroundColor Green
         Write-Host "You're ready to run all M365 PowerShell scripts!`n" -ForegroundColor Green
