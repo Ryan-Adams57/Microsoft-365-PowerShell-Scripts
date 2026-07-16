@@ -3,7 +3,7 @@
 Script Name: 56-Get-VivaInsightsAdoptionReport.ps1
 Description: Microsoft Viva Insights adoption and employee experience analytics
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
