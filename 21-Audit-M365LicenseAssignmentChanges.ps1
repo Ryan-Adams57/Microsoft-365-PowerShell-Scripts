@@ -3,7 +3,7 @@
 Script Name: 21-Audit-M365LicenseAssignmentChanges.ps1
 Description: License Assignment Change Tracking and Audit Report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
