@@ -3,7 +3,7 @@
 Script Name: 57-Get-M365UsageAnalyticsReport.ps1
 Description: Microsoft 365 usage analytics and adoption metrics across all workloads
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 SCRIPT HIGHLIGHTS:
