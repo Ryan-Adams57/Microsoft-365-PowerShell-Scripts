@@ -3,7 +3,7 @@
 Script Name: 31-Get-PowerBIWorkspaceReport.ps1
 Description: Power BI workspace, dataset, and report inventory
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
