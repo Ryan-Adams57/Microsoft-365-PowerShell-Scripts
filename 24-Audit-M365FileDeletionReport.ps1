@@ -3,7 +3,7 @@
 Script Name: 24-Audit-M365FileDeletionReport.ps1
 Description: File and Document Deletion Audit Report
 Version: 2.0 - Production Ready
-Last Updated: 2026-01-28
+Last Updated: 2026-07-15
 ====================================================================================
 
 REQUIREMENTS:
